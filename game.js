@@ -26,7 +26,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Фокус на игровом экране для управления клавиатурой
     gameScreen.focus();
 
-
     // Константы игры
     const GRAVITY = 0.3;
     const PLAYER_NORMAL_SPEED = 2.5;
@@ -76,12 +75,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
 
-        // Перезапуск игры
+        // Перезапуск уровня по клавише R
         if (e.code === 'KeyR') {
             if (gameState.isGameOver) {
                 restartGame();
             }
         }
+
 
         // Предотвращение стандартных действий браузера
         if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
@@ -474,21 +474,22 @@ document.addEventListener('DOMContentLoaded', function() {
             // Платформа в начале - стартовая площадка
             gameState.platforms.push(new Platform(44, floorHeight - TILE_SIZE * 3, 250, 250));
 
-            gameState.spikes.push(new Spike(300, floorHeight-38, TILE_SIZE, TILE_SIZE));
+            gameState.spikes.push(new Spike(300, floorHeight - 38, TILE_SIZE, TILE_SIZE));
             for (let i = 0; i < 4; i++) {
-                gameState.spikes.push(new Spike(300+30*i, floorHeight-38, TILE_SIZE, TILE_SIZE));
+                gameState.spikes.push(new Spike(300 + 30 * i, floorHeight - 38, TILE_SIZE, TILE_SIZE));
             }
 
 
             for (let i = 0; i < 32; i++) {
-                gameState.spikes.push(new Spike(520+30*i, floorHeight-38, TILE_SIZE, TILE_SIZE));
+                gameState.spikes.push(new Spike(520 + 30 * i, floorHeight - 38, TILE_SIZE, TILE_SIZE));
             }
+
 
             // Первая платформа
             gameState.platforms.push(new Platform(450, floorHeight - 300, TILE_SIZE * 3, TILE_SIZE));
 
             // Платформа после спуска
-            gameState.platforms.push(new Platform(TILE_SIZE * 12, floorHeight - TILE_SIZE*1.5, TILE_SIZE * 3, TILE_SIZE*10));
+            gameState.platforms.push(new Platform(TILE_SIZE * 12, floorHeight - TILE_SIZE * 1.5, TILE_SIZE * 3, TILE_SIZE * 10));
 
             // Вторая платформа с лестницей для подъема
             gameState.platforms.push(new Platform(TILE_SIZE * 18, floorHeight - TILE_SIZE * 6, TILE_SIZE * 3, TILE_SIZE));
@@ -548,12 +549,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         gameState.levelComplete = true;
 
+        // Если это второй уровень - сразу показываем экран победы
         if (gameState.currentLevel === 2) {
             setTimeout(() => {
-                gameWin(); // Экран победы
+                gameWin(); // Показываем экран победы
             }, 500);
         } else {
-            // Для первого уровня оверлей
+            // Для первого уровня показываем обычный оверлей
             setTimeout(() => {
                 levelCompleteOverlay.style.display = 'flex';
 
@@ -624,6 +626,24 @@ document.addEventListener('DOMContentLoaded', function() {
         gameScreen.focus();
     }
 
+    // Сброс уровня
+    function resetLevel() {
+        if (!gameState.gameStarted) return;
+
+        gameState.lives--;
+        livesDisplay.textContent = gameState.lives;
+
+        // Сброс ускорения при перезапуске уровня
+        if (gameState.isSpeedBoost) {
+            deactivateSpeedBoost();
+        }
+
+        if (gameState.lives <= 0) {
+            gameOver();
+        } else {
+            initLevel(gameState.currentLevel);
+        }
+    }
 
 
     // Показ сообщения
