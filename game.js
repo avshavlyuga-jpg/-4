@@ -26,18 +26,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Фокус на игровом экране для управления клавиатурой
     gameScreen.focus();
 
-    // Полноэкранный режим
-    fullscreenBtn.addEventListener('click', toggleFullscreen);
-
-    function toggleFullscreen() {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(err => {
-                console.log(`Ошибка при включении полноэкранного режима: ${err.message}`);
-            });
-        } else {
-            document.exitFullscreen();
-        }
-    }
 
     // Константы игры
     const GRAVITY = 0.3;
@@ -56,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let gameState = {
         currentLevel: 1,
         lives: 3,
-        timeLeft: 60 * 60, // 60 минут в секундах
+        timeLeft: 120,
         isPaused: false,
         isGameOver: false,
         levelComplete: false,
@@ -87,23 +75,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Пауза по клавише P
-        if (e.code === 'KeyP') {
-            togglePause();
-        }
 
-        // Перезапуск уровня по клавише R
+        // Перезапуск игры
         if (e.code === 'KeyR') {
             if (gameState.isGameOver) {
                 restartGame();
-            } else {
-                resetLevel();
             }
-        }
-
-        // Полноэкранный режим по клавише F
-        if (e.code === 'KeyF') {
-            toggleFullscreen();
         }
 
         // Предотвращение стандартных действий браузера
@@ -495,17 +472,16 @@ document.addEventListener('DOMContentLoaded', function() {
             gameState.platforms.push(new Platform(0, 0, canvasWidth, TILE_SIZE));
 
             // Платформа в начале - стартовая площадка
-            gameState.platforms.push(new Platform(59, floorHeight - TILE_SIZE * 3, 250, 250));
+            gameState.platforms.push(new Platform(44, floorHeight - TILE_SIZE * 3, 250, 250));
 
-            gameState.spikes.push(new Spike(320, floorHeight-45, TILE_SIZE, TILE_SIZE));
-            gameState.spikes.push(new Spike(350, floorHeight-45, TILE_SIZE, TILE_SIZE));
-            gameState.spikes.push(new Spike(380, floorHeight-45, TILE_SIZE, TILE_SIZE));
-            gameState.spikes.push(new Spike(410, floorHeight-45, TILE_SIZE, TILE_SIZE));
-            gameState.spikes.push(new Spike(440, floorHeight-45, TILE_SIZE, TILE_SIZE));
-            gameState.spikes.push(new Spike(470, floorHeight-45, TILE_SIZE, TILE_SIZE));
-            gameState.spikes.push(new Spike(500, floorHeight-45, TILE_SIZE, TILE_SIZE));
-            for (let i = 0; i < 38; i++) {
-                gameState.spikes.push(new Spike(690+30*i, floorHeight-45, TILE_SIZE, TILE_SIZE));
+            gameState.spikes.push(new Spike(300, floorHeight-38, TILE_SIZE, TILE_SIZE));
+            for (let i = 0; i < 4; i++) {
+                gameState.spikes.push(new Spike(300+30*i, floorHeight-38, TILE_SIZE, TILE_SIZE));
+            }
+
+
+            for (let i = 0; i < 32; i++) {
+                gameState.spikes.push(new Spike(520+30*i, floorHeight-38, TILE_SIZE, TILE_SIZE));
             }
 
             // Первая платформа
@@ -527,7 +503,7 @@ document.addEventListener('DOMContentLoaded', function() {
             gameState.spikes.push(new Spike(TILE_SIZE * 28, floorHeight - TILE_SIZE * 8, TILE_SIZE, TILE_SIZE));
 
             // Платформа с выходом
-            gameState.platforms.push(new Platform(TILE_SIZE * 33, floorHeight - TILE_SIZE * 2.98, TILE_SIZE * 8, TILE_SIZE));
+            gameState.platforms.push(new Platform(TILE_SIZE * 33, floorHeight - TILE_SIZE * 3, TILE_SIZE * 8, TILE_SIZE));
 
             // Выход - дверь
             gameState.exits.push(new Exit(TILE_SIZE * 39, floorHeight - TILE_SIZE * 6, TILE_SIZE * 2, TILE_SIZE * 3));
@@ -549,7 +525,7 @@ document.addEventListener('DOMContentLoaded', function() {
             gameState.platforms.push(new Platform(0, 0, canvasWidth, TILE_SIZE));
 
             // Выход
-            gameState.exits.push(new Exit(canvasWidth - TILE_SIZE*3, floorHeight - TILE_SIZE*8, TILE_SIZE*2, TILE_SIZE*3));
+            gameState.exits.push(new Exit(canvasWidth - TILE_SIZE*4, floorHeight - TILE_SIZE*3, TILE_SIZE*2, TILE_SIZE*3));
 
             // Игрок
             gameState.player = new Player(50, floorHeight - TILE_SIZE*4);
@@ -572,13 +548,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         gameState.levelComplete = true;
 
-        // Если это второй уровень - сразу показываем экран победы
         if (gameState.currentLevel === 2) {
             setTimeout(() => {
-                gameWin(); // Показываем экран победы
+                gameWin(); // Экран победы
             }, 500);
         } else {
-            // Для первого уровня показываем обычный оверлей
+            // Для первого уровня оверлей
             setTimeout(() => {
                 levelCompleteOverlay.style.display = 'flex';
 
@@ -624,7 +599,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function restartGame() {
         gameState.currentLevel = 1;
         gameState.lives = 3;
-        gameState.timeLeft = 60 * 60;
+        gameState.timeLeft = 120;
         gameState.isPaused = false;
         gameState.isGameOver = false;
         gameState.levelComplete = false;
@@ -649,38 +624,7 @@ document.addEventListener('DOMContentLoaded', function() {
         gameScreen.focus();
     }
 
-    // Сброс уровня
-    function resetLevel() {
-        if (!gameState.gameStarted) return;
 
-        gameState.lives--;
-        livesDisplay.textContent = gameState.lives;
-
-        // Сброс ускорения при перезапуске уровня
-        if (gameState.isSpeedBoost) {
-            deactivateSpeedBoost();
-        }
-
-        if (gameState.lives <= 0) {
-            gameOver();
-        } else {
-            initLevel(gameState.currentLevel);
-        }
-    }
-
-    // Пауза игры
-    function togglePause() {
-        if (!gameState.gameStarted || gameState.levelComplete || gameState.isGameOver) return;
-
-        gameState.isPaused = !gameState.isPaused;
-
-        if (gameState.isPaused) {
-            pauseOverlay.style.display = 'flex';
-        } else {
-            pauseOverlay.style.display = 'none';
-            gameScreen.focus();
-        }
-    }
 
     // Показ сообщения
     function showMessage(text, duration) {
